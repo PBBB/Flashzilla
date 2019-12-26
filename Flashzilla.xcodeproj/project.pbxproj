@@ -16,6 +16,7 @@
 		2BC9851623B26D7A00A855A9 /* EditCards.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC9851523B26D7900A855A9 /* EditCards.swift */; };
 		2BD27E9E23AEF19C00667ECE /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD27E9D23AEF19C00667ECE /* Card.swift */; };
 		2BD27EA023AEF24D00667ECE /* CardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD27E9F23AEF24D00667ECE /* CardView.swift */; };
+		2BF1798F23B4EB6500532C8A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF1798E23B4EB6500532C8A /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		2BC9851523B26D7900A855A9 /* EditCards.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditCards.swift; sourceTree = "<group>"; };
 		2BD27E9D23AEF19C00667ECE /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
 		2BD27E9F23AEF24D00667ECE /* CardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardView.swift; sourceTree = "<group>"; };
+		2BF1798E23B4EB6500532C8A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +70,7 @@
 				2BD27E9F23AEF24D00667ECE /* CardView.swift */,
 				2BD27E9D23AEF19C00667ECE /* Card.swift */,
 				2BC9851523B26D7900A855A9 /* EditCards.swift */,
+				2BF1798E23B4EB6500532C8A /* SettingsView.swift */,
 				2B4D744E23AC517D0072B769 /* Assets.xcassets */,
 				2B4D745323AC517D0072B769 /* LaunchScreen.storyboard */,
 				2B4D745623AC517D0072B769 /* Info.plist */,
@@ -155,6 +158,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BF1798F23B4EB6500532C8A /* SettingsView.swift in Sources */,
 				2B4D744923AC517B0072B769 /* AppDelegate.swift in Sources */,
 				2B4D744B23AC517B0072B769 /* SceneDelegate.swift in Sources */,
 				2B4D744D23AC517B0072B769 /* ContentView.swift in Sources */,

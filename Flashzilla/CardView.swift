@@ -12,7 +12,7 @@ struct CardView: View {
     @Environment(\.accessibilityDifferentiateWithoutColor) var differentiateWithoutColor
     @Environment(\.accessibilityEnabled) var accessibilityEnabled
     let card: Card
-    var removal: (() -> Void)? = nil
+    var removal: ((Bool) -> Void)? = nil
     @State private var isShowingAnswer = false
     @State private var offset = CGSize.zero
     @State private var feedback = UINotificationFeedbackGenerator()
@@ -62,19 +62,19 @@ struct CardView: View {
         .onChanged { gesture in
             self.offset = gesture.translation
             self.feedback.prepare()
-            }
+        }
         .onEnded { _ in
-            if abs(self.offset.width) > 100 {
-                if self.offset.width > 0 {
-                    self.feedback.notificationOccurred(.success)
+                if abs(self.offset.width) > 100 {
+                    if self.offset.width > 0 {
+                        self.feedback.notificationOccurred(.success)
+                        self.removal?(true)
+                    } else {
+                        self.feedback.notificationOccurred(.error)
+                        self.removal?(false)
+                    }
                 } else {
-                    self.feedback.notificationOccurred(.error)
+                    self.offset = .zero
                 }
-                
-                self.removal?()
-            } else {
-                self.offset = .zero
-            }
             }
         )
             .onTapGesture {

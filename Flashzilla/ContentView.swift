@@ -7,12 +7,17 @@
 //
 
 import SwiftUI
+import CoreHaptics
 
 struct ContentView: View {
     @State private var cards = [Card]()
     @State private var timeRemaining = 100
     @State private var isActive = true
     @State private var showingEditingScreen = false
+    @State private var showingSettingsScreen = false
+    @State private var showingAlert = false
+    @State private var engine: CHHapticEngine?
+    @State private var reuseWrongCards = false
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     @Environment(\.accessibilityDifferentiateWithoutColor) var differentiateWithoutColor
     @Environment(\.accessibilityEnabled) var accessibilityEnabled
@@ -25,8 +30,7 @@ struct ContentView: View {
                 .edgesIgnoringSafeArea(.all)
             
             VStack {
-                
-                Text("Time: \(timeRemaining)")
+                Text("Time: \(timeRemaining >= 0 ? timeRemaining : 0)")
                 .font(.largeTitle)
                 .foregroundColor(.white)
                 .padding(.horizontal, 20)
@@ -39,9 +43,9 @@ struct ContentView: View {
                 
                 ZStack {
                     ForEach(0..<cards.count, id: \.self) { index in
-                        CardView(card: self.cards[index]) {
+                        CardView(card: self.cards[index]) { isAnswerRight in
                             withAnimation {
-                                self.removeCard(at: index)
+                                self.removeCard(at: index, isAnswerRight: isAnswerRight)
                             }
                         }
                         .stacked(at: index, in: self.cards.count)
@@ -65,6 +69,16 @@ struct ContentView: View {
                     Spacer()
                     
                     Button(action: {
+                        self.showingSettingsScreen = true
+                    }) {
+                        Image(systemName: "gear")
+                            .padding()
+                            .background(Color.black.opacity(0.7))
+                            .clipShape(Circle())
+                    }
+                    
+                    
+                    Button(action: {
                         self.showingEditingScreen = true
                     }) {
                         Image(systemName: "plus.circle")
@@ -79,6 +93,7 @@ struct ContentView: View {
             .font(.largeTitle)
             .padding()
             
+            
             if differentiateWithoutColor || accessibilityEnabled {
                 VStack {
                     Spacer()
@@ -87,7 +102,7 @@ struct ContentView: View {
                         
                         Button(action: {
                             withAnimation {
-                                self.removeCard(at: self.cards.count - 1)
+                                self.removeCard(at: self.cards.count - 1, isAnswerRight: false)
                             }
                         }) {
                             Image(systemName: "xmark.circle")
@@ -102,7 +117,7 @@ struct ContentView: View {
                         
                         Button(action: {
                             withAnimation {
-                                self.removeCard(at: self.cards.count - 1)
+                                self.removeCard(at: self.cards.count - 1, isAnswerRight: true)
                             }
                         }) {
                             Image(systemName: "checkmark.circle")
@@ -120,14 +135,54 @@ struct ContentView: View {
                 }
             }
         }
-        .sheet(isPresented: $showingEditingScreen, onDismiss: resetCards) {
-            EditCards()
+        .background(EmptyView().sheet(isPresented: $showingEditingScreen, onDismiss: resetCards, content: { EditCards() })
+        .background(EmptyView().sheet(isPresented: self.$showingSettingsScreen, onDismiss: self.resetCards) {
+            SettingsView(reuseWrongCards: self.$reuseWrongCards)
+        })
+        )
+        
+        .onAppear {
+            self.resetCards()
+            guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+            do {
+                self.engine = try CHHapticEngine()
+                try self.engine?.start()
+            } catch let error {
+                fatalError("Engine Creation Error: \(error)")
+            }
         }
-        .onAppear(perform: resetCards)
         .onReceive(timer) { time in
             guard self.isActive else { return }
             if self.timeRemaining > 0 {
                 self.timeRemaining -= 1
+            } else if self.timeRemaining == 0 {
+                self.showingAlert = true
+                self.timeRemaining = -1
+                guard CHHapticEngine.capabilitiesForHardware().supportsHaptics else { return }
+                let intensity = CHHapticEventParameter(parameterID: .hapticIntensity, value: 1)
+                let sharpness = CHHapticEventParameter(parameterID: .hapticSharpness, value: 1)
+                let event = CHHapticEvent(eventType: .hapticTransient, parameters: [intensity, sharpness], relativeTime: 0)
+                
+                let intensity2 = CHHapticEventParameter(parameterID: .hapticIntensity, value: 1)
+                let sharpness2 = CHHapticEventParameter(parameterID: .hapticSharpness, value: 1)
+                let event2 = CHHapticEvent(eventType: .hapticTransient, parameters: [intensity2, sharpness2], relativeTime: 0.1)
+                
+                let intensity3 = CHHapticEventParameter(parameterID: .hapticIntensity, value: 1)
+                let sharpness3 = CHHapticEventParameter(parameterID: .hapticSharpness, value: 1)
+                let event3 = CHHapticEvent(eventType: .hapticTransient, parameters: [intensity3, sharpness3], relativeTime: 0.2)
+                
+                do {
+                    let pattern = try CHHapticPattern(events: [event, event2, event3], parameters: [])
+                    let player = try self.engine?.makePlayer(with: pattern)
+//                    self.engine?.start(completionHandler: nil)
+                    try player?.start(atTime: 0)
+//                    self.engine?.stop(completionHandler: nil)
+                } catch let error {
+                    fatalError("Engine Play Error: \(error)")
+                }
+                
+                
+                
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
@@ -138,11 +193,26 @@ struct ContentView: View {
                 self.isActive = true
             }
         }
+        .alert(isPresented: $showingAlert) {
+            Alert(title: Text("Time Up!"), message: nil, dismissButton: .default(Text("OK")) {
+                self.resetCards()
+            })
+        }
     }
     
-    func removeCard(at index: Int) {
+    func removeCard(at index: Int, isAnswerRight: Bool) {
         guard index >= 0 else { return }
-        cards.remove(at: index)
+        if reuseWrongCards {
+            if isAnswerRight {
+                cards.remove(at: index)
+            } else {
+//                let wrongCard = cards.remove(at: index)
+//                cards.insert(wrongCard, at: 0)
+            }
+           
+        } else {
+            cards.remove(at: index)
+        }
         
         if cards.isEmpty {
             isActive = false
