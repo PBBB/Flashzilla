@@ -52,6 +52,7 @@ struct ContentView: View {
                         .allowsHitTesting(index == self.cards.count - 1)
                         .accessibility(hidden: index < self.cards.count - 1)
                     }
+//                .anima
                 }
                 .allowsHitTesting(timeRemaining > 0)
                 
@@ -136,7 +137,7 @@ struct ContentView: View {
             }
         }
         .background(EmptyView().sheet(isPresented: $showingEditingScreen, onDismiss: resetCards, content: { EditCards() })
-        .background(EmptyView().sheet(isPresented: self.$showingSettingsScreen, onDismiss: self.resetCards) {
+        .background(EmptyView().sheet(isPresented: self.$showingSettingsScreen, onDismiss: resetCards) {
             SettingsView(reuseWrongCards: self.$reuseWrongCards)
         })
         )
@@ -206,8 +207,8 @@ struct ContentView: View {
             if isAnswerRight {
                 cards.remove(at: index)
             } else {
-//                let wrongCard = cards.remove(at: index)
-//                cards.insert(wrongCard, at: 0)
+                let wrongCard = cards.remove(at: index)
+                cards.insert(wrongCard, at: 0)
             }
            
         } else {
