@@ -27,12 +27,7 @@ struct CardView: View {
                         : Color.white
                         .opacity(1 - Double(abs(offset.width / 50)))
             )
-                .background(
-                    differentiateWithoutColor
-                        ? nil
-                        : RoundedRectangle(cornerRadius: 25, style: .continuous)
-                            .fill(offset.width > 0 ? Color.green : Color.red)
-            )
+            .modifier(CardBackgroundColor(differentiateWithoutColor: differentiateWithoutColor, offset: offset))
                 .shadow(radius: 10)
             
             VStack {
@@ -83,6 +78,31 @@ struct CardView: View {
                 self.isShowingAnswer.toggle()
         }
         .animation(.spring())
+    }
+}
+
+struct CardBackgroundColor: ViewModifier {
+    let differentiateWithoutColor: Bool
+    let offset:CGSize
+    
+    var backgroundColor: Color {
+        if offset.width > 0 {
+            return .green
+        } else if offset.width == 0 {
+            return .white
+        } else {
+            return .red
+        }
+    }
+    
+    func body(content: Content) -> some View {
+        content
+            .background(
+                differentiateWithoutColor
+                    ? nil
+                    : RoundedRectangle(cornerRadius: 25, style: .continuous)
+                        .fill(backgroundColor)
+        )
     }
 }
 
